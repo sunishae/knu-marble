@@ -24,6 +24,7 @@ public class AdminController {
 
     private final MissionSummitService missionSummitService;
     private final MissionService missionService;
+    private final DaeguFestivalCrawler daeguFestivalCrawler;
 
     /**
      * 미션 제출 목록 페이지
@@ -85,5 +86,20 @@ public class AdminController {
         List<CreateMissionDTO> missions = missionService.getAllMissions();
         model.addAttribute("missions", missions);
         return "admin/mission-list-all";  // 모든 미션 조회 템플릿
+    }
+
+    /**
+     * 대구 축제 일정 크롤링 → 미션 자동 생성
+     */
+    @GetMapping("/crawl/festivals")
+    public String crawlFestivals(Model model) {
+        try {
+            List<CreateMissionDTO> missions = daeguFestivalCrawler.crawlAndSaveFestivals();
+            model.addAttribute("crawledCount", missions.size());
+            model.addAttribute("message", "크롤링 성공: " + missions.size() + "개 미션 생성");
+        } catch (Exception e) {
+            model.addAttribute("message", "크롤링 실패: " + e.getMessage());
+        }
+        return "admin/mission-list-all";
     }
 }
